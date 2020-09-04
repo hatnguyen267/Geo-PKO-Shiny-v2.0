@@ -57,7 +57,7 @@ tcc_df <- geopko %>% select(Source, Mission, Year, Month, No.troops, 52:85) %>%
 #data prep: creating list of country codes for GADM sf files dowload
 
 cclist3 <- iso %>% select(Mission, a3) %>% distinct() 
-map_df <- geopko %>% unite(timepoint, c("Year","Month"), sep="-") %>% 
+map_df <- geopko %>% unite(timepoint, c("Year","Month"), sep=": ") %>% 
   mutate(timepoint=as.factor(timepoint))
 
 #lollipop dataprep
@@ -76,11 +76,12 @@ ui <- fluidPage(
              tabPanel("Map Generator",
                       sidebarLayout(
                         sidebarPanel(width=3, 
-                          p("Where are UN peacekeepers posted, and how many? Select the options below to visualize."),
+                          p("Where are UN peacekeepers posted, and how many? Select the options below to visualise."),
                           selectInput(inputId="mission_map", label="Select a mission",
                                       choices=factor(geopko$Mission), width=150),
                           selectInput("timepoint_map", 
-                                      "Choose source's timepoint", choices=NULL),
+                                      "Select a year and month", choices=NULL),
+                          helpText("Available months are based on deployment maps publicly available from the United Nations."),
                           checkboxInput(inputId="depsize_map", 
                                         "Deployment size", value=TRUE),
                           checkboxInput(inputId="MHQ_map", 
@@ -91,36 +92,36 @@ ui <- fluidPage(
                                         "UNMO", value=FALSE),
                           checkboxInput(inputId="UNPOL_map", 
                                         "UNPOL", value=FALSE),
-                          helpText("Errors may occur when a selected feature is not available for a map. Please deselect the option.")
+                          helpText("Errors may occur when a selected feature (e.g. Mission HQ) is not available for a map. If an error occurs, please deselect the option.")
                         ),
                         mainPanel(fluid=TRUE,
                                   plotOutput("depmap"),
                                   span(h6(textOutput("basecountries"), align="center"))
                         ))
              ),
-             tabPanel("Troop-contributing Countries",
+             tabPanel("Troop-Contributing Countries",
                       basicPage(
                         radioButtons(inputId="databy_tcc", 
                                      label="Present data by:", 
                                      choices=c("Deployment map", "Year"),
                                      selected="Deployment map (default)"),
-                        helpText("The GeoPKO dataset collects data by deployment maps published by the UN. For the best accuracy, display data by deployment maps. Data by year present the year's average troop counts and the highest number of TCCs."),
+                        helpText("The GeoPKO dataset collects data by deployment maps published by the UN. For the best accuracy, display data by deployment maps. Data by year present the year's average troop counts and the highest number of Troop-Contribuing Countries (TCCs)."),
                         # span(h6(textOutput("tabletext", align="right"))),
                         DT::dataTableOutput("tcc_table")
                       )),
-             tabPanel ("Time Maps",
+             tabPanel ("Missions",
                        sidebarLayout(
                          sidebarPanel(
-                           p("What locations had Peacekeepers when? Select the options below to visualize."),
+                           p("Which locations had peacekeeping deployments, and when? Select the options below to visualise."),
                            selectInput(inputId="Lollipop_map", label="Select a mission",
                                        choices=factor(Years$Mission), width=150), width= 3,
-                           p("The lollipop graphs show per mission the years in which a location had active deployment of peacekeepers.")
+                           helpText("These graphs show the years in which a location had at least one active peacekeeping deployment.")
                          ),
                          mainPanel(fluid=TRUE,
                                    plotOutput("lollipop", height="auto")
                        )
              )),
-             tabPanel ("About",tags$div(
+             tabPanel ("Using This Data",tags$div(
                tags$h3("Geocoded UN Peacekeeping Operations Dataset"),tags$br(),
                "The Geo-PKO dataset provides data on UN peacekeeping deployments.", tags$br(),
                "It offers information on key attributes of peacekeeping deployments at the local level, including location, size, troop type, headquarters, troop-contributing countries and other variables.",tags$br(),tags$br(),
@@ -158,7 +159,7 @@ server <- function(input, output, session){
       group_by(Source, Mission, Year, Month, Total.troops, nameoftcc)%>%
       summarise(total.tcc=sum(notroopspertcc)) %>% 
       add_count(Source, name="No.TCC") %>%
-      mutate(overview=paste0(nameoftcc, "-", total.tcc)) %>%
+      mutate(overview=paste0(nameoftcc, " - ", total.tcc)) %>%
       select(-nameoftcc, -total.tcc) %>%
       group_by(Source, Mission, Year, Month, Total.troops, No.TCC) %>%
       summarise(details=str_c(overview, collapse=", ")) %>% 
@@ -173,7 +174,7 @@ server <- function(input, output, session){
       group_by(Source, Mission, Year, Month, Total.troops, nameoftcc)%>%
       summarise(total.each.tcc=sum(notroopspertcc)) %>% 
       add_count(Source, name="No.TCC") %>%
-      mutate(overview=paste0(nameoftcc, "-", total.each.tcc)) %>%
+      mutate(overview=paste0(nameoftcc, " - ", total.each.tcc)) %>%
       select(-nameoftcc, -total.each.tcc) %>%
       group_by(Source, Mission, Year, Month, Total.troops, No.TCC) %>%
       summarise(details=str_c(overview, collapse=", ")) %>% 
