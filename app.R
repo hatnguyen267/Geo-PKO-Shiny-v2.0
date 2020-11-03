@@ -165,11 +165,12 @@ ui <- fluidPage(
                         )
                       )),
              tabPanel ("Data",tags$div(
-               includeHTML("using-the-dataset-3.html")
+               includeMarkdown("data.Rmd")
              )),
              tabPanel ("About",tags$div(
-               includeHTML("about2.html")))
-  )
+               includeMarkdown("about.Rmd")
+  )))
+
 )
 
 
