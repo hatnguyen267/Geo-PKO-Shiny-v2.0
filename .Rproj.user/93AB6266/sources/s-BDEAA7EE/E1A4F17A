@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1604650379210.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4107693584",
+    "id" : "E1A4F17A",
+    "lastKnownWriteTime" : 1604651648,
+    "last_content_update" : 1604651648680,
+    "path" : "~/Documents/Lou/Git/Geo-PKO-Shiny-v2.0/Shiny_November.R",
+    "project_path" : "Shiny_November.R",
+    "properties" : {
+        "cursorPosition" : "357,66",
+        "scrollLine" : "333"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
