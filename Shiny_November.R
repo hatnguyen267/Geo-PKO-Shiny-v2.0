@@ -15,9 +15,12 @@ library(sp)
 library(htmltools)
 
 
-setwd("C:/Users/tanus/Documents/R/Geo-PKO-Shiny-v2.0")
+#setwd("C:/Users/tanus/Documents/R/Geo-PKO-Shiny-v2.0")
 
-geopko2 <- read.csv("geopko2.csv")
+geopko2 <- readr::read_csv("geopko2.csv", col_types = cols(.default="c"),
+                           locale=readr::locale(encoding="latin1")) #version for leaflet
+
+#geopko2 <- read.csv("geopko2.csv")
 
 
 #Basic Data modification
@@ -26,10 +29,14 @@ geopko2$RPF_No<-as.numeric(geopko2$RPF_No)
 geopko2$UNPOL<-as.numeric(geopko2$UNPOL.dummy)
 geopko2$UNMO<-as.numeric(geopko2$UNMO.dummy)
 geopko2$No.TCC<-as.numeric(geopko2$No.TCC)
+geopko2$Avia<-as.numeric(geopko2$Avia)
+geopko2$HeSup <-as.numeric(geopko2$HeSup)
 geopko2$Av<- (geopko2$Avia + geopko2$HeSup)
 geopko2$Infantry <- as.numeric(geopko2$Inf_No)
 geopko2$HQ <- as.numeric(geopko2$HQ)
 geopko2$Reserve <- as.numeric(geopko2$RES_No)
+geopko2$Longitude<-as.numeric(geopko2$Longitude)
+geopko2$Latitude <- as.numeric(geopko2$Latitude)
 
 HQicon <- awesomeIcons(
   icon = 'fas fa-home',

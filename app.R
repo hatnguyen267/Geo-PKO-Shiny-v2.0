@@ -35,7 +35,10 @@ if(!require(scales)) install.packages("scales")
 if(!require(ggnewscale)) install.packages("ggnewscale")
 if(!require(shinycssloaders)) install.packages("shinycssloaders")
 if(!require(purrr)) install.packages("purrr")
+if(!require(htmltools)) install.packages("htmltools")
+if(!require(knitr)) install.packages("knitr")
 if(!require(foreign)) install.packages("foreign", repos = "https://svn.r-project.org/")
+
 
 options(shiny.usecairo=TRUE)
 
@@ -43,8 +46,12 @@ options(shiny.usecairo=TRUE)
 
 geopko <- readr::read_csv("geopko2.csv", col_types = cols(.default="c"),
                           locale=readr::locale(encoding="latin1"))
+geopko2 <- readr::read_csv("geopko2.csv", col_types = cols(.default="c"),
+                           locale=readr::locale(encoding="latin1")) #version for leaflet
 iso <- read.csv("geopko_ccode2.csv")
 
+rmdfiles <- c("about.Rmd", "data.Rmd")
+sapply(rmdfiles, knit, quiet=T)
 
 ####data prep TCC####
 
@@ -71,22 +78,13 @@ cclist3 <- iso %>% select(Mission, a3) %>% distinct() #creating list of country 
 map_df <- geopko %>% unite(joined_date, c("Year","Month"), sep=": ", remove=FALSE) %>% 
   unite(timepoint, c("Year","Month"), sep=" ", remove=FALSE) 
 
-#oxford comma paste
+#oxford comma string
 country_list <-function(w, oxford=T) {
   if(length(w)==1) return(paste("This mission was active in the following country or territory:",w));
   if(length(w)==2) return(paste("This mission was active in the following countries or territories:", w[1],"and",w[2]));
   paste0("This mission was active in the following countries or territories: ",paste(w[-length(w)], collapse=", "), 
          ifelse(oxford,",","")," and ", w[length(w)] )
 }
-
-####lollipop data prep####
-
-Years <- geopko
-Years <- Years %>% group_by(Mission, Location)%>% summarize(start_date=min(Year), end_date=max(Year))
-
-####facet map data prep (placeholder)####
-
-
 
 ####UI####
 
@@ -165,12 +163,12 @@ ui <- fluidPage(
                         )
                       )),
              tabPanel ("Data",tags$div(
-               includeMarkdown("data.Rmd")
-             )),
+               withMathJax(includeMarkdown("data.md"))
+             ), style='width:1100px'),
              tabPanel ("About",tags$div(
-               includeMarkdown("about.Rmd")
-  )))
-
+               withMathJax(includeMarkdown("about.md"))
+             ), style='width:1100px'))
+  
 )
 
 
@@ -346,8 +344,7 @@ server <- function(input, output, session){
                                   "UNPOL"="darkgreen"),
                          labels=c("SHQ"="Sector HQ", "UNMO"="Military Observers", "UNPOL"="UN Police"),
                          name="")
-       
-      # 
+    
     
     # if(input$depsize_map){
     #   if(nrow(map_zero()) >0){
@@ -422,7 +419,8 @@ server <- function(input, output, session){
     #                                   "UNPOL"="UN Police"),
     #                          name="Non-combat functions")
     #   }
-    # # }
+    #  }
+    
     if(input$MHQ_map){
       p <- p +  geom_point(data=map_df_temp() %>% filter(HQ==3) %>% slice(1),
                            aes(x=Longitude, y=Latitude, shape="HQ"),
@@ -465,13 +463,13 @@ server <- function(input, output, session){
     }
     
     p <- p +
-    theme(plot.subtitle = element_text(color="red"),
-          plot.title=element_text(face="bold", hjust=0),
-          #      plot.caption.position = "plot",
-          plot.caption = element_text(hjust=1),
-          legend.direction = "horizontal", 
-          legend.position = "bottom", 
-          legend.box = "vertical")
+      theme(plot.subtitle = element_text(color="red"),
+            plot.title=element_text(face="bold", hjust=0),
+            #      plot.caption.position = "plot",
+            plot.caption = element_text(hjust=1),
+            legend.direction = "horizontal", 
+            legend.position = "bottom", 
+            legend.box = "vertical")
     
     print(p)
     
@@ -491,16 +489,16 @@ server <- function(input, output, session){
   
   static_map_details <- reactive({
     if(length(typecheck_df()>0)){
-    map_df_temp() %>% tibble::rowid_to_column("ID") %>% 
-      select(ID, Location, No.troops, No.TCC, RPF:UAV, Other.Type, -RPF_No,
-             -Inf_No, -FPU_No, -RES_No, -FP_No) %>% 
-      mutate(across(everything(), as.character)) %>% 
-      pivot_longer(5:23, names_to="trooptypes", values_to="binary") %>% 
-      filter(binary==1) %>% 
-      mutate(trooptypes=ifelse(trooptypes=="Other.Type", "Others", trooptypes)) %>% 
-      group_by(ID, Location, No.troops, No.TCC) %>% 
-      summarize(Troop.Compo = str_c(trooptypes, collapse=", ")) %>% ungroup() %>% 
-      select(-ID)}
+      map_df_temp() %>% tibble::rowid_to_column("ID") %>% 
+        select(ID, Location, No.troops, No.TCC, RPF:UAV, Other.Type, -RPF_No,
+               -Inf_No, -FPU_No, -RES_No, -FP_No) %>% 
+        mutate(across(everything(), as.character)) %>% 
+        pivot_longer(5:23, names_to="trooptypes", values_to="binary") %>% 
+        filter(binary==1) %>% 
+        mutate(trooptypes=ifelse(trooptypes=="Other.Type", "Others", trooptypes)) %>% 
+        group_by(ID, Location, No.troops, No.TCC) %>% 
+        summarize(Troop.Compo = str_c(trooptypes, collapse=", ")) %>% ungroup() %>% 
+        select(-ID)}
     else {
       map_df_temp() %>% 
         select(Location, No.troops, No.TCC) %>% 
@@ -592,7 +590,9 @@ server <- function(input, output, session){
   ####lollipop####
   lollipop_df <- reactive({
     req(input$Lollipop_map)
-    Years %>% filter(Mission %in% input$Lollipop_map) %>% 
+    geopko %>% group_by(Mission, Location)%>% 
+      summarize(start_date=min(Year), end_date=max(Year)) %>% 
+      filter(Mission %in% input$Lollipop_map) %>% 
       mutate_at(vars(c(start_date, end_date)), as.numeric)
   })
   
@@ -602,7 +602,10 @@ server <- function(input, output, session){
   })
   
   
+  
   output$lollipop <- renderPlot({
+    
+    
     lolli <-   ggplot(lollipop_df()) +
       geom_segment(aes(x=start_date, xend=end_date, 
                        y=fct_reorder(Location, start_date), 
