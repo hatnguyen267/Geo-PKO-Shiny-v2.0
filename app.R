@@ -403,7 +403,7 @@ ui <- bootstrapPage(
   navbarPage("Exploring Geo-PKO",
              collapsible = TRUE,
              navbarMenu(
-               "Global Deployments",
+               title="Global Deployments",
                tabPanel(
                  "Troop Deployments",
                  # spinner on loading
