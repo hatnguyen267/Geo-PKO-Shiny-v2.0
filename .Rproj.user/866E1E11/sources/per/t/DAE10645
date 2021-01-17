@@ -1,0 +1,32 @@
+{
+    "id": "DAE10645",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1610880170672.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "expression": "TCCmapData",
+        "caption": "TCCmapData",
+        "totalObservations": 6905,
+        "displayedObservations": 6905,
+        "variables": 7,
+        "cacheKey": "0BE46B0A",
+        "object": "TCCmapData",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=TCCmapData&cache_key=0BE46B0A&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 2459000718892870704,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1610880170672,
+    "read_only": false,
+    "read_only_alternatives": []
+}
